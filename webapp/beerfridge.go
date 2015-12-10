@@ -1,6 +1,7 @@
 package beerfridge
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -15,6 +16,7 @@ func init() {
 	http.HandleFunc("/", status)
 	http.HandleFunc("/store", store)
 	http.HandleFunc("/temp", temp)
+	http.HandleFunc("/data", data)
 }
 
 type SensorData struct {
@@ -101,7 +103,7 @@ const statusHTML = `
   <body>
     <div id="keg1" style="width: 180px; height: 180px; float: left"></div>
     <div id="keg2" style="width: 180px; height: 180px; float: left"></div>
-		<a href="/temp" style="color: inherit">
+    <a href="/temp" style="color: inherit">
       <div id="temp" style="width: 180px; height: 180px; float: left"></div>
       {{if .FridgeOn}}
       <div id="fridge" style="width: 180px; height: 180px; background-color: #d9ead3; text-align: center; vertical-align: middle; float: left">
@@ -233,13 +235,35 @@ func temp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// reverse the list
-	//for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
-	//	data[i], data[j] = data[j], data[i]
-	//}
-
 	err := tempTemplate.Execute(w, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func data(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	records := 1
+	if val, err := strconv.Atoi(r.FormValue("records")); err == nil {
+		records = val
+	}
+
+	q := datastore.NewQuery("SensorData").Ancestor(sensorKey(c)).Order("-Date").Limit(records)
+	data := make([]SensorData, 0, records)
+	if _, err := q.GetAll(c, &data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := w.Write(b); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
