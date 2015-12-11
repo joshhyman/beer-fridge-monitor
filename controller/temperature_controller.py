@@ -58,7 +58,7 @@ if __name__ == '__main__':
       # Datalog
       try:
         urllib2.urlopen(
-            "http://si-lax-beer-fridge.appspot.com/store?secret=beerisgood&"
+            "http://foo.com/store?secret=beerisgood&"
             "temp_f=%0.1f&keg1=0&keg2=0&fridge_on=%d"
             % (temp, fridge_state))
       except:
