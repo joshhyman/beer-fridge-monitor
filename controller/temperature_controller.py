@@ -7,9 +7,22 @@ import RPi.GPIO as GPIO
 import temperature as temp
 import urllib2
 
+TAP1_INPUT_PIN = 18
+
 FRIDGE_OUTPUT_PIN = 16
 HIGH_TEMP = 42.0
 LOW_TEMP = 38.0
+
+class TapInputPin(object):
+#  TIME_TO_END_POUR_IN_SEC = 1
+
+  def __init__(self, pin_num):
+    self.pin_num = pin_num
+    GPIO.setup(pin_num, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.add_event_detect(pin_num, GPIO.FALLING, callback=self.tick, bouncetime=3)
+
+  def tick(self):
+    print "TICK!"
 
 class OutputPin(object):
   def __init__(self, pin_num):
@@ -43,6 +56,7 @@ if __name__ == '__main__':
   # Set up GPIO pin as output
   GPIO.setmode(GPIO.BOARD)
   fridge_pin = OutputPin(FRIDGE_OUTPUT_PIN)
+  tap_pin = TapInputPin(TAP1_INPUT_PIN)
   try:
     # Run update loop
     fridge_state = False
