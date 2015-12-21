@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 import temperature as temp
 import urllib2
 
-TAP1_INPUT_PIN = 18
+TAP1_INPUT_PIN = 22
 
 FRIDGE_OUTPUT_PIN = 16
 HIGH_TEMP = 42.0
